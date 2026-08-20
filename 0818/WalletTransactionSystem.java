@@ -13,7 +13,8 @@ final class WalletTransaction {
 
     @Override
     public String toString() {
-        return sequence + " " + type + " " + amount + " balance=" + balanceAfter;
+        return sequence + " " + type + " " + amount
+                + " balance=" + balanceAfter;
     }
 }
 
@@ -25,15 +26,16 @@ class DigitalWallet {
     private int transactionCount;
 
     DigitalWallet(String walletId, String owner, int historyCapacity) {
-        this.walletId = (walletId == null || walletId.isBlank()) ? "UNKNOWN" : walletId;
-        this.owner = (owner == null || owner.isBlank()) ? "Unknown" : owner;
+        this.walletId = walletId == null || walletId.isBlank()
+                ? "UNKNOWN" : walletId;
+        this.owner = owner == null || owner.isBlank() ? "Unknown" : owner;
         this.balance = 0;
         this.transactions = new WalletTransaction[Math.max(1, historyCapacity)];
         this.transactionCount = 0;
     }
 
     boolean deposit(int amount) {
-        if (amount <= 0 || hasNoCapacity()) {
+        if (amount <= 0 || transactionCount >= transactions.length) {
             return false;
         }
         balance += amount;
@@ -42,7 +44,8 @@ class DigitalWallet {
     }
 
     boolean pay(int amount) {
-        if (amount <= 0 || amount > balance || hasNoCapacity()) {
+        if (amount <= 0 || amount > balance
+                || transactionCount >= transactions.length) {
             return false;
         }
         balance -= amount;
@@ -51,36 +54,12 @@ class DigitalWallet {
     }
 
     boolean refund(int amount) {
-        if (amount <= 0 || hasNoCapacity()) {
+        if (amount <= 0 || transactionCount >= transactions.length) {
             return false;
         }
         balance += amount;
         record("REFUND", amount);
         return true;
-    }
-
-    // 實作變化：跨物件原子轉帳
-    boolean transferTo(DigitalWallet target, int amount) {
-        if (target == null || target == this || amount <= 0) {
-            return false;
-        }
-        // 同時檢查：來源餘額足夠、來源有空間、目標有空間
-        if (this.balance < amount || this.hasNoCapacity() || target.hasNoCapacity()) {
-            return false;
-        }
-
-        // 條件全數通過後才執行狀態異動
-        this.balance -= amount;
-        this.record("TRANSFER_OUT", amount);
-
-        target.balance += amount;
-        target.record("TRANSFER_IN", amount);
-
-        return true;
-    }
-
-    private boolean hasNoCapacity() {
-        return transactionCount >= transactions.length;
     }
 
     private void record(String type, int amount) {
@@ -90,7 +69,8 @@ class DigitalWallet {
     }
 
     void printStatement() {
-        System.out.println(walletId + " owner=" + owner + " balance=" + balance);
+        System.out.println(walletId + " owner=" + owner
+                + " balance=" + balance);
         for (int i = 0; i < transactionCount; i++) {
             System.out.println(transactions[i]);
         }
@@ -99,22 +79,12 @@ class DigitalWallet {
 
 public class WalletTransactionSystem {
     public static void main(String[] args) {
-        DigitalWallet amy = new DigitalWallet("W001", "Amy", 5);
-        DigitalWallet bob = new DigitalWallet("W002", "Bob", 2);
+        DigitalWallet wallet = new DigitalWallet("W001", "Amy", 5);
 
-        amy.deposit(1000);
-        
-        // 測試成功轉帳
-        System.out.println("Transfer 300 to Bob: " + amy.transferTo(bob, 300));
-        
-        // 測試容量不足轉帳失敗（Bob 容量只有 2，已存滿）
-        bob.deposit(100); // Bob 筆數達上限 2
-        System.out.println("Transfer 200 to full Bob: " + amy.transferTo(bob, 200));
-
-        System.out.println("\n--- Amy Statement ---");
-        amy.printStatement();
-
-        System.out.println("\n--- Bob Statement ---");
-        bob.printStatement();
+        System.out.println("deposit=" + wallet.deposit(1000));
+        System.out.println("pay 250=" + wallet.pay(250));
+        System.out.println("pay 900=" + wallet.pay(900));
+        System.out.println("refund=" + wallet.refund(50));
+        wallet.printStatement();
     }
 }

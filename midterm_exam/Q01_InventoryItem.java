@@ -4,13 +4,14 @@ public class Q01_InventoryItem {
     private int stock;
 
     public Q01_InventoryItem(String id, String name, int stock) {
-        if (id == null || id.trim().isEmpty()
-                || name == null || name.trim().isEmpty()) {
-            throw new IllegalArgumentException("Invalid id or name");
+        if (id == null || id.strip().isEmpty()) {
+            throw new IllegalArgumentException("Invalid id");
         }
-
-        this.id = id.trim();
-        this.name = name.trim();
+        if (name == null || name.strip().isEmpty()) {
+            throw new IllegalArgumentException("Invalid name");
+        }
+        this.id = id.strip();
+        this.name = name.strip();
         this.stock = Math.max(0, stock);
     }
 
@@ -27,21 +28,19 @@ public class Q01_InventoryItem {
     }
 
     public boolean restock(int amount) {
-        if (amount <= 0) {
-            return false;
+        if (amount > 0) {
+            this.stock += amount;
+            return true;
         }
-
-        stock += amount;
-        return true;
+        return false;
     }
 
     public boolean sell(int amount) {
-        if (amount <= 0 || amount > stock) {
-            return false;
+        if (amount > 0 && this.stock >= amount) {
+            this.stock -= amount;
+            return true;
         }
-
-        stock -= amount;
-        return true;
+        return false;
     }
 
     public String status() {

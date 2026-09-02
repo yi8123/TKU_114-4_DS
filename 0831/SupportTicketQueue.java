@@ -16,9 +16,9 @@ public class SupportTicketQueue {
         @Override
         public int compareTo(Ticket other) {
             if (this.severity != other.severity) {
-                return Integer.compare(other.severity, this.severity); // 越大越優先
+                return Integer.compare(other.severity, this.severity);
             }
-            return Integer.compare(this.createdOrder, other.createdOrder); // 越小越優先
+            return Integer.compare(this.createdOrder, other.createdOrder);
         }
 
         @Override
